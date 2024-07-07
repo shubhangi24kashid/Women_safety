@@ -1,0 +1,134 @@
+/* Basic reset to remove default browser styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Navigation bar styling */
+nav {
+  background-color: rgba(119, 0, 255, 0.664);
+  position: relative;
+}
+
+nav ul {
+  list-style-type: none;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+nav ul li {
+  float: left;
+}
+
+nav ul li a {
+  display: block;
+  color: white;
+  text-align: center;
+  padding: 14px 20px;
+  text-decoration: none;
+}
+
+nav ul li a:hover {
+  background-color: #ddd;
+  color: rgba(119, 0, 255, 0.664);
+}
+
+/* Responsive styling */
+.menu-icon {
+  display: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 14px 20px;
+  color: white;
+}
+
+@media (max-width: 600px) {
+  nav ul {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    position: absolute;
+    top: 60px; /* Adjust as needed */
+    left: 0;
+    background-color: rgba(119, 0, 255, 0.664);
+    z-index: 1;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
+  }
+
+  nav ul.show {
+    display: flex;
+  }
+
+  nav ul li {
+    float: none;
+    width: 100%;
+  }
+
+  nav ul li a {
+    padding: 10px;
+    text-align: left;
+  }
+
+  .menu-icon {
+    display: block;
+  }
+}
+
+/* Content styling */
+.content {
+  padding: 20px;
+}
+
+/* Form styling */
+form {
+  margin-bottom: 20px;
+}
+
+form label {
+  display: block;
+  margin: 10px 0 5px;
+}
+
+form input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+form button {
+  background-color: rgba(119, 0, 255, 0.664);
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+form button:hover {
+  background-color: rgba(119, 0, 255, 0.8);
+}
+
+/* Table styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+table, th, td {
+  border: 1px solid #ccc;
+}
+
+th, td {
+  padding: 10px;
+  text-align: left;
+}
+
+th {
+  background-color: rgba(119, 0, 255, 0.664);
+  color: white;
+}
