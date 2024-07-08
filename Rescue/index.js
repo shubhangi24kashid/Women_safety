@@ -10,15 +10,16 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const { Client } = pkg;
-
 const __dirname = dirname(fileURLToPath(import.meta.url));
-
 const app = express();
+const port = process.env.PORT || 3000;
+
+// Middleware
 app.use(express.static('public'));
-const port = 3000;
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+// PostgreSQL Client
 const client = new Client({
   user: process.env.DATABASE_USER,
   host: process.env.DATABASE_HOST,
@@ -29,6 +30,19 @@ const client = new Client({
 
 client.connect();
 
+// Twilio Client
+const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+
+// Function to format phone number to E.164
+function formatPhoneNumber(phone) {
+  // Example: For India, prepend country code +91 if not present
+  if (!phone.startsWith('+')) {
+    phone = '+91' + phone;
+  }
+  return phone;
+}
+
+// Routes
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/public/index.html");
 });
@@ -60,4 +74,64 @@ app.get("/contacts-data", async (req, res) => {
   }
 });
 
-app.put
+app.put("/update", async (req, res) => {
+  const { id, name, phone, email } = req.body;
+
+  try {
+    const query = 'UPDATE contacts SET name = $1, phone = $2, email = $3 WHERE id = $4';
+    await client.query(query, [name, phone, email, id]);
+    res.status(200).send('Contact updated successfully.');
+  } catch (error) {
+    console.error('Error updating contact:', error);
+    res.status(500).send('Failed to update contact.');
+  }
+});
+
+app.delete("/delete", async (req, res) => {
+  const { id } = req.body;
+
+  try {
+    const query = 'DELETE FROM contacts WHERE id = $1';
+    await client.query(query, [id]);
+    res.status(200).send('Contact deleted successfully.');
+  } catch (error) {
+    console.error('Error deleting contact:', error);
+    res.status(500).send('Failed to delete contact.');
+  }
+});
+
+app.post("/sendEmergencyAlert", async (req, res) => {
+  const { message } = req.body;
+
+  try {
+    // Fetch all contacts from the database
+    const result = await client.query('SELECT phone FROM contacts');
+    const contacts = result.rows;
+
+    // Send SMS to each contact
+    const sendMessages = contacts.map(contact => {
+      const formattedPhone = formatPhoneNumber(contact.phone);
+      return twilioClient.messages.create({
+        body: message,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: formattedPhone
+      }).catch(error => {
+        if (error.code === 21608 || error.code === 21408) {
+          console.error(`Error sending SMS to ${formattedPhone}: ${error.message}`);
+        } else {
+          throw error;
+        }
+      });
+    });
+
+    await Promise.all(sendMessages);
+    res.status(200).send('SOS messages sent successfully.');
+  } catch (error) {
+    console.error('Error sending SOS messages:', error);
+    res.status(500).send('Failed to send SOS messages.');
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Listening on port ${port}`);
+});
