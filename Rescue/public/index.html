@@ -1,56 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rescue</title>
+  <title>Women Safety App</title>
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
   <nav>
-    <div class="menu-icon" onclick="toggleMenu()">
-      &#9776;
+    <div class="app-name">Women Safety App</div>
+    <div class="menu">
+      <a href="login.html" class="button">Login</a>
+      <a href="signup.html" class="button">Sign Up</a>
     </div>
-    <ul class="menu">
-      <li><a href="index.html">Home</a></li>
-      <li><a href="contacts.html">Contacts</a></li>
-      <li><a href="#info">Other Information</a></li>
-      <li><a href="#location">Location</a></li>
-    </ul>
   </nav>
 
   <div class="content">
-    <h1>Women Safety App</h1>
-    <button id="sosButton" onclick="sendSOS()">SOS</button>
+    <h1>Welcome to Women Safety App</h1>
+    <p>Please login or sign up to continue.</p>
   </div>
 
   <script src="scripts.js"></script>
-  <script>
-    async function sendSOS() {
-      const emergencyMessage = "Emergency! Please help! This is from shubhangi kashid";
-
-      try {
-        const response = await fetch('/sendEmergencyAlert', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ message: emergencyMessage })
-        });
-
-        if (response.ok) {
-          alert('Emergency SOS sent to contacts!');
-        } else {
-          throw new Error('Failed to send SOS.');
-        }
-      } catch (error) {
-        console.error('Error sending SOS:', error);
-        alert('Failed to send SOS.');
-      }
-    }
-  </script>
 </body>
-
 </html>
