@@ -1,6 +1,6 @@
 // Function to toggle menu on smaller screens
 function toggleMenu() {
-  const menu = document.querySelector('nav ul');
+  const menu = document.querySelector('nav ul.menu');
   menu.classList.toggle('show');
 }
 
@@ -104,28 +104,74 @@ window.onload = function() {
 
 // Logout function
 function logout() {
-  localStorage.setItem('isAuthenticated', 'false');
-  window.location.href = 'login.html';
-}
-function toggleMenu() {
-  const menu = document.querySelector('nav ul.menu');
-  menu.classList.toggle('show');
-}
-
-function sendSOS() {
-  alert("SOS message sent!");
-  // Add SOS logic here
-}
-
-function logout() {
-  alert("Logging out...");
-  // Add logout logic here
-}
-function logout() {
   // Remove the authentication state from local storage
   localStorage.removeItem('isAuthenticated');
   
   // Redirect to the index page
   window.location.href = 'index.html';
 }
+
+// Load blogs on the "Other Information" page
+// Function to fetch and display blogs
+async function loadBlogs() {
+  try {
+    const response = await fetch('/getBlogs');
+    if (response.ok) {
+      const blogs = await response.json();
+      const blogsContainer = document.getElementById('blogs');
+      blogs.forEach(blog => {
+        const blogDiv = document.createElement('div');
+        blogDiv.classList.add('blog');
+        blogDiv.innerHTML = `
+          <h2>${blog.title}</h2>
+          <p>${blog.content}</p>
+        `;
+        blogsContainer.appendChild(blogDiv);
+      });
+    } else {
+      console.error('Failed to fetch blogs:', await response.text());
+    }
+  } catch (error) {
+    console.error('Error loading blogs:', error);
+  }
+}
+
+// Call the function to load blogs on page load
+window.onload = loadBlogs;
+
+const socket = io();
+
+// Send message to server
+function sendMessage() {
+  const messageInput = document.getElementById('message');
+  const message = messageInput.value;
+  if (message.trim()) {
+    socket.emit('chatMessage', message);
+    messageInput.value = '';
+  }
+}
+
+// Listen for chat messages
+socket.on('chatMessage', (msg) => {
+  const output = document.getElementById('output');
+  const div = document.createElement('div');
+  div.classList.add('message');
+  div.innerText = msg;
+  output.appendChild(div);
+  output.scrollTop = output.scrollHeight;
+});
+
+// Listen for typing events
+const messageInput = document.getElementById('message');
+messageInput.addEventListener('keypress', () => {
+  socket.emit('typing', 'A user is typing...');
+});
+
+socket.on('typing', (data) => {
+  const feedback = document.getElementById('feedback');
+  feedback.innerText = data;
+  setTimeout(() => {
+    feedback.innerText = '';
+  }, 1000);
+});
 

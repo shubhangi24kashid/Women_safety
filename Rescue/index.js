@@ -1,3 +1,4 @@
+// Import required modules
 import express from "express";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -7,6 +8,8 @@ import twilio from "twilio";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import session from "express-session";
+import http from "http";
+import { Server } from "socket.io";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -125,6 +128,11 @@ app.get("/home", isAuthenticated, (req, res) => {
   res.sendFile(__dirname + "/public/home.html");
 });
 
+// Route to serve the community page
+app.get("/community", isAuthenticated, (req, res) => {
+  res.sendFile(__dirname + "/public/community.html");
+});
+
 // Other routes
 app.get("/contacts", isAuthenticated, (req, res) => {
   res.sendFile(__dirname + "/public/contacts.html");
@@ -183,6 +191,18 @@ app.delete("/delete", isAuthenticated, async (req, res) => {
   }
 });
 
+// Route to fetch all blogs
+app.get('/getBlogs', async (req, res) => {
+  try {
+    const result = await client.query('SELECT title, content FROM blogs ORDER BY created_at DESC');
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('Error fetching blogs:', error);
+    res.status(500).send('Failed to fetch blogs.');
+  }
+});
+
+// Send emergency alert
 app.post("/sendEmergencyAlert", isAuthenticated, async (req, res) => {
   const { message } = req.body;
 
@@ -213,6 +233,7 @@ app.post("/sendEmergencyAlert", isAuthenticated, async (req, res) => {
   }
 });
 
+// Logout route
 app.get("/logout", (req, res) => {
   req.session.destroy((err) => {
     if (err) {
@@ -224,6 +245,32 @@ app.get("/logout", (req, res) => {
   });
 });
 
-app.listen(port, () => {
-  console.log(`Listening on port ${port}`);
+// Initialize HTTP server and Socket.IO for real-time communication
+const server = http.createServer(app);
+const io = new Server(server);
+
+// Handle socket connections for the community chat feature
+io.on('connection', (socket) => {
+  console.log('A user connected:', socket.id);
+
+  // Handle chat message event
+  socket.on('chatMessage', (msg) => {
+    console.log('Message received:', msg);
+    io.emit('chatMessage', msg); // Broadcast message to all connected clients
+  });
+
+  // Handle typing event
+  socket.on('typing', (user) => {
+    socket.broadcast.emit('typing', user); // Notify others that a user is typing
+  });
+
+  // Handle disconnection
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+  });
+});
+
+// Start the server
+server.listen(port, () => {
+  console.log(`Server is listening on port ${port}`);
 });
